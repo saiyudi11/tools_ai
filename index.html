@@ -399,6 +399,18 @@
                 iconClass: "fa-solid fa-gamepad text-cyan-500"
             },
             {
+                id: 104,
+                name: "Media Interaktif - Bahasa Arab",
+                category: "Text",
+                desc: "Modul pembelajaran interaktif bahasa Arab berbasis AI untuk mempermudah penguasaan mufrodat, percakapan harian, serta tata bahasa Arab secara interaktif.",
+                link: "https://gemini.google.com/share/d/1ZAtVEODmIa7t-s2qbN5yr7ch6uBNLJsg?usp=sharing",
+                pricing: "Gratis",
+                rating: 4.9,
+                reviews: 188,
+                tags: ["Arabic", "Language", "Education", "Interactive"],
+                iconClass: "fa-solid fa-language text-amber-500"
+            },
+            {
                 id: 103,
                 name: "Gemini AI",
                 category: "Text",
@@ -535,8 +547,9 @@
             // Detect if database needs synchronization with updated default tools (e.g. check for Foto Editor or absence of Sora)
             const hasFotoEditor = parsedTools.some(t => t.name === "Foto Editor");
             const hasSora = parsedTools.some(t => t.name === "Sora");
+            const hasMediaArab = parsedTools.some(t => t.name === "Media Interaktif - Bahasa Arab");
 
-            if (!savedTools || !hasFotoEditor || hasSora) {
+            if (!savedTools || !hasFotoEditor || hasSora || !hasMediaArab) {
                 toolsList = [...DEFAULT_TOOLS];
                 localStorage.setItem('saiyudi_tools', JSON.stringify(toolsList));
             } else {
