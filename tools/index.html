@@ -226,7 +226,7 @@
 
                             <div id="containerManualPrompt" class="hidden space-y-1.5">
                                 <span class="text-[10px] text-slate-400 block">Tulis detail scene, tata cahaya, sudut kamera, dan estetika background secara lengkap.</span>
-                                <textarea id="manualPromptInput" rows="3" placeholder="Contoh: A high-end commercial product shot of a beverage can, placed on a futuristic dark metal platform, dramatic neon lighting..." class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 focus:outline-none focus:border-brand-500"></textarea>
+                                <textarea id="manualPromptInput" rows="3" placeholder="Contoh: Keep the main product unchanged. Change the background to a dark futuristic metallic platform with cyan neon lighting..." class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 focus:outline-none focus:border-brand-500"></textarea>
                             </div>
                         </div>
                     </div>
@@ -394,7 +394,6 @@
     <div id="notificationArea" class="fixed bottom-6 right-6 z-[120] flex flex-col gap-3 max-w-xs sm:max-w-sm w-full"></div>
 
     <script>
-        /* Global State Variables */
         let currentMode = 'product'; // 'product' or 'merger'
         let productImgBase64 = '';
         let mergerImages = []; // List of { base64, name }
@@ -476,7 +475,6 @@
             }, 4000);
         }
 
-        /* File Upload Handling */
         function setupDragAndDrop() {
             const productZone = document.getElementById('dropZoneProduct');
             const mergerZone = document.getElementById('dropZoneMerger');
@@ -623,25 +621,25 @@
             });
         }
 
-        /* Templates Styling */
         function applyTemplate(e, type) {
-            const buttons = document.querySelectorAll('.template-btn');
-            buttons.forEach(btn => btn.classList.remove('border-brand-500', 'bg-brand-500/5', 'dark:bg-brand-500/10'));
-            
-            e.currentTarget.classList.add('border-brand-500', 'bg-brand-500/5', 'dark:bg-brand-500/10');
+            if (e && e.currentTarget) {
+                const buttons = document.querySelectorAll('.template-btn');
+                buttons.forEach(btn => btn.classList.remove('border-brand-500', 'bg-brand-500/5', 'dark:bg-brand-500/10'));
+                e.currentTarget.classList.add('border-brand-500', 'bg-brand-500/5', 'dark:bg-brand-500/10');
+            }
             
             switch(type) {
                 case 'marble':
-                    activeTemplateText = "placed elegantly on a sleek white luxury marble countertop, soft warm side lighting, highly detailed commercial product shot, elegant clean studio shadows, photorealistic, depth of field";
+                    activeTemplateText = "Change the background to a premium luxury polished white marble counter in a high-end bright showroom. Beautiful studio lighting, elegant blurred background bokeh, clean realistic shadows underneath the product, 8k resolution commercial advertisement";
                     break;
                 case 'nature':
-                    activeTemplateText = "on pristine tropical golden beach sand, ocean waves splashing smoothly in the background, beautiful golden sunset backlight, soft water mist, tropical leaves framing the scene, highly detailed commercial photography, stunning depth of field";
+                    activeTemplateText = "Change the background to pristine smooth golden tropical beach sand. Gentle ocean waves splashing softly in the distant background, warm sunset backlight casting a warm golden glow, soft palm tree leaves framing the scene, highly realistic shadows and reflections";
                     break;
                 case 'studio':
-                    activeTemplateText = "in a clean minimalist design studio setting, soft pastel blue monochrome stage backdrop, studio softbox lighting, pristine clean shadows, high resolution commercial item showcase";
+                    activeTemplateText = "Change the background to a clean solid minimalist design studio platform with soft pastel blue monochrome stage. Professional softbox light casting elegant soft shadows, highly pristine and clean commercial catalog render";
                     break;
                 case 'cyber':
-                    activeTemplateText = "placed on a sleek glossy neon reflective dark stage, neon cyan and magenta lights reflecting off the surfaces, futuristic cyberpunk dark wet city alley in background, volumetric hazy fog, gorgeous professional creative product photo, 8k resolution";
+                    activeTemplateText = "Change the background to a dark wet reflective metallic platform in a neon futuristic cyberpunk street. Glowing cyan and magenta neon lights reflecting realistically on the surfaces, soft volumetric smoke and haze, hyper-detailed futuristic commercial composition";
                     break;
             }
             
@@ -669,9 +667,7 @@
             }
         }
 
-        /* Core API calling logic */
         async function processAI() {
-            // apiKey is left as empty string to utilize Canvas environment injection
             const apiKey = ""; 
 
             if (currentMode === 'product') {
@@ -682,19 +678,20 @@
                 
                 let prompt = '';
                 if (isPromptManual) {
-                    prompt = document.getElementById('manualPromptInput').value.trim();
-                    if (!prompt) {
+                    const userPrompt = document.getElementById('manualPromptInput').value.trim();
+                    if (!userPrompt) {
                         showAlert('Silakan isi instruksi manual Anda!', 'error');
                         return;
                     }
+                    prompt = `BACKGROUND EDITING TASK: Do NOT modify, redraw, distort, or replace the main product in the foreground of the input image. Keep its exact shape, colors, brand name, text, design, and physical details perfectly identical. Only change and replace the entire background area behind the product. New background description: ${userPrompt}. Ensure the product blends realistically with matching shadows and reflections on the surface beneath it.`;
                 } else {
                     const simple = document.getElementById('simplePromptInput').value.trim();
                     
-                    // Fallback studio default if everything is left blank (just upload and click generate)
-                    const sceneDesc = simple || 'elegant minimalist product display stand';
-                    const styleDesc = activeTemplateText || 'placed on a pristine presentation stage, professional warm product lighting, ultra detailed commercial design, photorealistic shadows, stunning 8k resolution';
+                    // Fallback to beautiful studio display if everything is empty
+                    const sceneDesc = simple ? `Change the background to: ${simple}` : "Change the background to a premium, clean minimalist presentation platform";
+                    const styleDesc = activeTemplateText || "Change the background to a pristine modern catalog stage, soft warm studio lighting, clean detailed shadows on the ground, photorealistic 8k commercial photography";
                     
-                    prompt = `Professional studio product advertisement photography. The main product in the input image must be preserved exactly as it is (retaining its shape, colors, branding, and design features) but seamlessly integrated into a new premium scene: ${sceneDesc}. Styling: ${styleDesc}. Create realistic matching studio lighting reflections and depth of field.`;
+                    prompt = `IMAGE-TO-IMAGE PRODUCT PRESERVATION EDIT: Identify the main foreground product in this photo. You must preserve this exact product subject 100% identically. DO NOT alter its label, packaging, brand text, color, shape, or contours. Replace only the background behind the product. Background style: ${sceneDesc}. ${styleDesc}. Integrate the preserved product seamlessly with realistic contact shadows and ambient lighting matching the new background scene.`;
                 }
 
                 setCanvasState('loading');
@@ -772,7 +769,6 @@
             }
         }
 
-        /* API Call helper for Image to Image (Product Maker) */
         async function callGeminiImageToImage(apiKey, prompt, base64Data, mimeType) {
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`;
             
@@ -790,7 +786,7 @@
                     ]
                 }],
                 generationConfig: {
-                    responseModalities: ['IMAGE'],
+                    responseModalities: ['TEXT', 'IMAGE'],
                     imageConfig: { aspectRatio: "4:3" }
                 }
             };
@@ -840,7 +836,7 @@
                     ]
                 }],
                 generationConfig: {
-                    responseModalities: ['IMAGE'],
+                    responseModalities: ['TEXT', 'IMAGE'],
                     imageConfig: { aspectRatio: "4:3" }
                 }
             };
@@ -877,7 +873,6 @@
             }
         }
 
-        /* Compare Slider Interactions and Utility functions */
         function initCompareSlider() {
             const slider = document.getElementById('compareSlider');
             const handle = document.getElementById('sliderHandle');
