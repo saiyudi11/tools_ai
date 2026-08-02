@@ -186,6 +186,17 @@
     <p>Isi identitas materi Anda, pilih dokumen yang dibutuhkan, dan biarkan AI menyusun CP, ATP, Modul Ajar, RPP, LKPD, asesmen, hingga bank soal — sesuai Kurikulum Nasional, Deep Learning, dan TPACK.</p>
   </div>
 
+  <!-- TERDAPAT PENGATURAN API KEY DI SINI -->
+  <div class="card">
+    <span class="step-tag">Pengaturan Kunci API</span>
+    <h2>API Key Anthropic (Claude)</h2>
+    <div class="sub">Masukkan API Key Anda untuk menghubungkan generator dengan Claude AI. Kunci ini hanya disimpan di browser Anda (Local Storage).</div>
+    <div class="field full">
+      <label for="apiKey">Claude API Key (sk-ant-api...)</label>
+      <input id="apiKey" type="password" placeholder="sk-ant-api03-..." onchange="saveApiKey()">
+    </div>
+  </div>
+
   <div class="card">
     <span class="step-tag">Langkah 1</span>
     <h2>Data perangkat</h2>
@@ -301,6 +312,20 @@ const PRESET_INTI = ['01','04','05','06','07','16','19'];
 
 const results = {};
 
+// Memuat API Key dari LocalStorage jika ada
+window.onload = function() {
+  const savedKey = localStorage.getItem('claude_api_key');
+  if (savedKey) {
+    document.getElementById('apiKey').value = savedKey;
+  }
+  buildPicker();
+};
+
+function saveApiKey() {
+  const key = document.getElementById('apiKey').value.trim();
+  localStorage.setItem('claude_api_key', key);
+}
+
 function buildPicker(){
   const cats = [...new Set(SECTIONS.map(s=>s.cat))];
   const picker = document.getElementById('doc-picker');
@@ -364,19 +389,32 @@ Tulis HANYA dokumen yang diminta pada pesan pengguna, langsung ke isi (tanpa bas
 }
 
 async function generateSection(section, ctx){
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if(!apiKey) {
+    throw new Error('API Key Claude belum diisi. Masukkan API Key pada kotak atas.');
+  }
+
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: "claude-3-5-sonnet-20241022",
       max_tokens: 1000,
       system: systemPrompt(ctx),
       messages: [{ role: "user", content: section.instr }]
     })
   });
+
   if(!response.ok){
-    throw new Error('Permintaan gagal (' + response.status + ')');
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error?.message || ('Permintaan gagal (' + response.status + ')'));
   }
+
   const data = await response.json();
   const text = (data.content || []).map(b => b.text || '').join('\n').trim();
   if(!text) throw new Error('Tidak ada konten yang dihasilkan.');
@@ -408,6 +446,12 @@ function setBadge(id, state, label){
 }
 
 async function startGeneration(){
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if(!apiKey){
+    alert('Silakan masukkan API Key Claude terlebih dahulu.');
+    return;
+  }
+
   const selectedIds = [...document.querySelectorAll('#doc-picker input:checked')].map(b=>b.dataset.id);
   if(selectedIds.length===0){ alert('Pilih minimal satu dokumen terlebih dahulu.'); return; }
 
@@ -497,8 +541,6 @@ function downloadAll(){
   a.click();
   URL.revokeObjectURL(url);
 }
-
-buildPicker();
 </script>
 </body>
 </html>
