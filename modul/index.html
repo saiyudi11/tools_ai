@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator Perangkat Pembelajaran</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<style>
+  :root{
+    --board:#1C3F35;
+    --board-dark:#132D26;
+    --board-line: rgba(244,239,225,0.08);
+    --chalk:#F4EFE1;
+    --chalk-dim: rgba(244,239,225,0.62);
+    --gold:#D9AE4E;
+    --gold-dark:#8A6A20;
+    --paper:#FBF7EC;
+    --paper-line:#E7DFC9;
+    --ink:#242019;
+    --ink-soft:#6B6455;
+    --teal:#2F7D6B;
+    --stamp:#A83A2D;
+    --danger-bg:#FBE7E4;
+    --danger-ink:#8A3020;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--board);
+    background-image:
+      radial-gradient(circle at 15% 8%, var(--board-line) 0, transparent 45%),
+      radial-gradient(circle at 85% 92%, var(--board-line) 0, transparent 45%);
+    color:var(--chalk);
+    font-family:'Plus Jakarta Sans', sans-serif;
+    padding:0 0 5rem;
+  }
+  h1,h2,h3{ font-family:'Fraunces', serif; margin:0; font-weight:600; }
+  .wrap{ max-width:920px; margin:0 auto; padding:0 1.5rem; }
+
+  /* ---- HERO ---- */
+  .hero{ padding:4rem 0 3rem; text-align:center; }
+  .eyebrow{
+    font-family:'Caveat', cursive; font-weight:700; font-size:1.4rem;
+    color:var(--gold); letter-spacing:.02em; display:block; margin-bottom:.25rem;
+    transform:rotate(-2deg);
+  }
+  .hero h1{ font-size:2.6rem; line-height:1.15; color:var(--chalk); }
+  .hero p{ color:var(--chalk-dim); max-width:560px; margin:1rem auto 0; font-size:1.02rem; line-height:1.6; }
+
+  /* ---- PAPER CARD ---- */
+  .card{
+    background:var(--paper); color:var(--ink); border-radius:4px;
+    padding:2rem; margin-bottom:1.75rem;
+    box-shadow: 0 18px 34px rgba(0,0,0,0.28);
+    position:relative;
+  }
+  .card::before{
+    content:""; position:absolute; top:0; left:36px; width:2px; height:100%;
+    background:rgba(168,58,45,0.12);
+  }
+  .card h2{ font-size:1.35rem; color:var(--ink); margin-bottom:.35rem; }
+  .card .sub{ color:var(--ink-soft); font-size:.92rem; margin-bottom:1.5rem; }
+  .step-tag{
+    display:inline-flex; align-items:center; gap:.4rem; font-size:.75rem;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--teal);
+    font-weight:700; margin-bottom:.5rem;
+  }
+
+  /* ---- FORM ---- */
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:1.1rem 1.4rem; }
+  .field{ display:flex; flex-direction:column; gap:.4rem; }
+  .field.full{ grid-column:1 / -1; }
+  label{ font-size:.85rem; font-weight:600; color:var(--ink); }
+  input, select{
+    font-family:'Plus Jakarta Sans', sans-serif; font-size:.95rem;
+    padding:.65rem .75rem; border-radius:3px; border:1.5px solid var(--paper-line);
+    background:#fff; color:var(--ink);
+  }
+  input:focus, select:focus{ outline:none; border-color:var(--teal); }
+
+  /* ---- SECTION PICKER ---- */
+  .presets{ display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+  .preset-btn{
+    font-family:'Plus Jakarta Sans'; font-size:.82rem; font-weight:600;
+    padding:.45rem .9rem; border-radius:20px; border:1.5px solid var(--teal);
+    background:transparent; color:var(--teal); cursor:pointer;
+  }
+  .preset-btn:hover{ background:rgba(47,125,107,0.1); }
+  .cat{ margin-bottom:1.3rem; }
+  .cat-title{
+    font-size:.8rem; text-transform:uppercase; letter-spacing:.07em;
+    color:var(--gold-dark); font-weight:700; margin-bottom:.6rem;
+    border-bottom:1px dashed var(--paper-line); padding-bottom:.4rem;
+  }
+  .doc-list{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem .8rem; }
+  .doc-item{
+    display:flex; align-items:flex-start; gap:.55rem; font-size:.88rem;
+    padding:.35rem .4rem; border-radius:3px; cursor:pointer;
+  }
+  .doc-item:hover{ background:rgba(47,125,107,0.07); }
+  .doc-item input{ margin-top:.2rem; accent-color:var(--teal); padding:0; }
+
+  .generate-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    flex-wrap:wrap;
+  }
+  .gen-btn{
+    font-family:'Plus Jakarta Sans'; font-weight:700; font-size:1rem;
+    background:var(--stamp); color:var(--paper); border:none;
+    padding:.9rem 1.8rem; border-radius:3px; cursor:pointer;
+    letter-spacing:.02em;
+  }
+  .gen-btn:hover{ background:#8f2f24; }
+  .gen-btn:disabled{ background:#bbb; cursor:not-allowed; }
+  .count-note{ font-size:.85rem; color:var(--ink-soft); }
+
+  .progress-wrap{ margin-top:1.2rem; display:none; }
+  .progress-track{ height:8px; background:var(--paper-line); border-radius:4px; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background:var(--teal); transition:width .3s; }
+  .progress-label{ font-size:.8rem; color:var(--ink-soft); margin-top:.4rem; }
+
+  /* ---- RESULTS ---- */
+  #results{ margin-top:2.5rem; }
+  .result-card{
+    background:var(--paper); border-radius:2px; margin-bottom:1rem;
+    box-shadow:0 12px 24px rgba(0,0,0,0.22);
+    position:relative; overflow:hidden;
+  }
+  .result-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 1.4rem; cursor:pointer; gap:1rem;
+  }
+  .result-head h3{ font-size:1.05rem; color:var(--ink); }
+  .result-num{ font-family:'Fraunces'; color:var(--ink-soft); font-size:.85rem; margin-right:.5rem; }
+  .status-badge{
+    font-family:'Caveat'; font-weight:700; font-size:1.25rem; color:var(--stamp);
+    border:2.5px solid var(--stamp); border-radius:6px; padding:.05rem .6rem;
+    transform:rotate(-4deg); white-space:nowrap;
+  }
+  .status-badge.pending{ border-color:var(--ink-soft); color:var(--ink-soft); font-family:'Plus Jakarta Sans'; font-size:.78rem; transform:none; font-weight:600; }
+  .status-badge.loading{ border-color:var(--gold-dark); color:var(--gold-dark); font-family:'Plus Jakarta Sans'; font-size:.78rem; transform:none; font-weight:600; }
+  .status-badge.error{ border-color:var(--danger-ink); color:var(--danger-ink); font-family:'Plus Jakarta Sans'; font-size:.78rem; transform:none; font-weight:600; }
+  .result-body{
+    display:none; padding:0 1.4rem 1.4rem; border-top:1px solid var(--paper-line);
+  }
+  .result-body.open{ display:block; }
+  .result-content{ font-size:.92rem; line-height:1.65; padding-top:1rem; }
+  .result-content table{ border-collapse:collapse; width:100%; font-size:.85rem; margin:.6rem 0; }
+  .result-content th, .result-content td{ border:1px solid var(--paper-line); padding:.4rem .55rem; text-align:left; }
+  .result-content th{ background:rgba(47,125,107,0.08); }
+  .result-content h1, .result-content h2, .result-content h3{ font-family:'Plus Jakarta Sans'; font-weight:700; margin:1rem 0 .4rem; color:var(--ink); }
+  .result-actions{ display:flex; gap:.6rem; margin-top:.9rem; }
+  .mini-btn{
+    font-size:.78rem; font-weight:600; padding:.4rem .8rem; border-radius:3px;
+    border:1.3px solid var(--teal); background:transparent; color:var(--teal); cursor:pointer;
+  }
+  .mini-btn:hover{ background:rgba(47,125,107,0.1); }
+  .err-text{ color:var(--danger-ink); font-size:.85rem; padding-top:.8rem; }
+
+  .download-bar{ text-align:center; margin-top:2rem; }
+  .download-bar button{
+    font-family:'Plus Jakarta Sans'; font-weight:700; font-size:.95rem;
+    background:var(--gold); color:#3a2a08; border:none; padding:.8rem 1.6rem;
+    border-radius:3px; cursor:pointer;
+  }
+  .download-bar button:hover{ background:#c69c3f; }
+
+  footer{ text-align:center; color:var(--chalk-dim); font-size:.78rem; margin-top:3rem; }
+
+  @media(max-width:640px){
+    .grid, .doc-list{ grid-template-columns:1fr; }
+    .hero h1{ font-size:2rem; }
+    .card{ padding:1.4rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <span class="eyebrow">untuk guru Indonesia</span>
+    <h1>Generator Perangkat Pembelajaran</h1>
+    <p>Isi identitas materi Anda, pilih dokumen yang dibutuhkan, dan biarkan AI menyusun CP, ATP, Modul Ajar, RPP, LKPD, asesmen, hingga bank soal — sesuai Kurikulum Nasional, Deep Learning, dan TPACK.</p>
+  </div>
+
+  <!-- TERDAPAT PENGATURAN API KEY DI SINI -->
+  <div class="card">
+    <span class="step-tag">Pengaturan Kunci API</span>
+    <h2>API Key Anthropic (Claude)</h2>
+    <div class="sub">Masukkan API Key Anda untuk menghubungkan generator dengan Claude AI. Kunci ini hanya disimpan di browser Anda (Local Storage).</div>
+    <div class="field full">
+      <label for="apiKey">Claude API Key (sk-ant-api...)</label>
+      <input id="apiKey" type="password" placeholder="sk-ant-api03-..." onchange="saveApiKey()">
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="step-tag">Langkah 1</span>
+    <h2>Data perangkat</h2>
+    <div class="sub">Tujuh informasi ini menjadi dasar seluruh dokumen yang dihasilkan.</div>
+    <div class="grid">
+      <div class="field">
+        <label for="mapel">Mata Pelajaran</label>
+        <input id="mapel" placeholder="mis. IPAS, Matematika, Bahasa Indonesia">
+      </div>
+      <div class="field">
+        <label for="kelas">Kelas</label>
+        <input id="kelas" placeholder="mis. IV SD, VIII SMP, XI SMA">
+      </div>
+      <div class="field">
+        <label for="semester">Semester</label>
+        <select id="semester">
+          <option value="Ganjil">Ganjil</option>
+          <option value="Genap">Genap</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="waktu">Alokasi Waktu</label>
+        <input id="waktu" placeholder="mis. 2 x 35 menit">
+      </div>
+      <div class="field">
+        <label for="model">Model Pembelajaran</label>
+        <select id="model">
+          <option>Deep Learning</option>
+          <option>Problem Based Learning</option>
+          <option>Project Based Learning</option>
+          <option>Inquiry Learning</option>
+          <option>Discovery Learning</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="pertemuan">Jumlah Pertemuan</label>
+        <input id="pertemuan" type="number" min="1" value="1">
+      </div>
+      <div class="field full">
+        <label for="materi">Materi</label>
+        <input id="materi" placeholder="mis. Siklus Air dan Perubahan Wujud Benda">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="step-tag">Langkah 2</span>
+    <h2>Pilih dokumen</h2>
+    <div class="sub">Centang dokumen yang ingin dibuat. Setiap dokumen dibuat lewat satu permintaan AI terpisah.</div>
+
+    <div class="presets">
+      <button class="preset-btn" onclick="applyPreset('inti')">Paket Inti (7 dokumen)</button>
+      <button class="preset-btn" onclick="applyPreset('semua')">Pilih Semua (30)</button>
+      <button class="preset-btn" onclick="applyPreset('kosong')">Kosongkan</button>
+    </div>
+
+    <div id="doc-picker"></div>
+
+    <div class="generate-bar">
+      <button class="gen-btn" id="genBtn" onclick="startGeneration()">Buat Perangkat Pembelajaran</button>
+      <span class="count-note" id="countNote">0 dokumen dipilih</span>
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">Menyiapkan...</div>
+    </div>
+  </div>
+
+  <div id="results"></div>
+
+  <div class="download-bar" id="downloadBar" style="display:none;">
+    <button onclick="downloadAll()">Unduh Semua sebagai .md</button>
+  </div>
+
+  <footer>Dibuat dengan Claude &middot; hasil AI, mohon ditinjau ulang sebelum digunakan di kelas.</footer>
+</div>
+
+<script>
+const SECTIONS = [
+  {id:'01', cat:'Perencanaan', title:'Analisis CP', instr:'Buat Analisis Capaian Pembelajaran (CP): analisis kompetensi, analisis materi, kata kerja operasional, dan level Bloom yang sesuai.'},
+  {id:'02', cat:'Perencanaan', title:'Analisis ATP', instr:'Buat analisis awal untuk menyusun Alur Tujuan Pembelajaran: pemetaan kompetensi dan urutan logis capaian.'},
+  {id:'03', cat:'Perencanaan', title:'Tujuan Pembelajaran', instr:'Rumuskan Tujuan Pembelajaran yang jelas, terukur, dan berbasis kompetensi serta konten sesuai materi.'},
+  {id:'04', cat:'Perencanaan', title:'Alur Tujuan Pembelajaran (ATP)', instr:'Buat tabel ATP lengkap dengan kolom: Tujuan, Indikator, Materi, Aktivitas, Asesmen, Media, Output.'},
+  {id:'05', cat:'Perencanaan', title:'Modul Ajar', instr:'Susun Modul Ajar lengkap: Pendahuluan, Kegiatan Inti, Penutup, Refleksi, Asesmen, dan Lampiran.'},
+  {id:'06', cat:'Perencanaan', title:'RPP', instr:'Susun RPP menggunakan model pembelajaran yang dipilih pengguna, mengikuti sintaks model tersebut secara runtut.'},
+  {id:'07', cat:'Media & LKPD', title:'LKPD', instr:'Buat LKPD (Lembar Kerja Peserta Didik) lengkap: Cover, Petunjuk, Tujuan, Stimulus, Observasi, Diskusi, Eksperimen, Analisis, Presentasi, Refleksi.'},
+  {id:'08', cat:'Media & LKPD', title:'Media Pembelajaran', instr:'Berikan ide dan rancangan konten media pembelajaran: infografis, poster, storyboard video/animasi, timeline, mind map, dan flashcard sesuai materi.'},
+  {id:'09', cat:'Media & LKPD', title:'Presentasi Guru', instr:'Buat outline presentasi guru berisi 20 slide: judul, materi inti, infografis, animasi, quiz, dan kesimpulan.'},
+  {id:'10', cat:'Media & LKPD', title:'Video Pembelajaran (Storyboard)', instr:'Buat storyboard video pembelajaran per adegan: visual, narasi, durasi perkiraan.'},
+  {id:'11', cat:'Media & LKPD', title:'Ice Breaking', instr:'Berikan 3 ide ice breaking singkat yang relevan dengan materi dan jenjang kelas.'},
+  {id:'12', cat:'Media & LKPD', title:'Apersepsi', instr:'Buat skrip apersepsi pembuka pelajaran yang menghubungkan pengalaman siswa dengan materi baru.'},
+  {id:'13', cat:'Asesmen & Soal', title:'Asesmen Diagnostik', instr:'Buat asesmen diagnostik (kognitif dan non-kognitif) untuk mengukur kesiapan belajar siswa sebelum materi ini.'},
+  {id:'14', cat:'Asesmen & Soal', title:'Asesmen Formatif', instr:'Buat asesmen formatif yang dilakukan selama proses pembelajaran berlangsung, lengkap dengan indikator ketercapaian.'},
+  {id:'15', cat:'Asesmen & Soal', title:'Asesmen Sumatif', instr:'Buat asesmen sumatif akhir pembelajaran lengkap dengan indikator dan bentuk soal.'},
+  {id:'16', cat:'Asesmen & Soal', title:'Rubrik Penilaian', instr:'Buat rubrik penilaian mencakup aspek pengetahuan, keterampilan, sikap, presentasi, kolaborasi, dan produk, dalam bentuk tabel skala.'},
+  {id:'17', cat:'Asesmen & Soal', title:'Kisi-kisi Soal', instr:'Buat kisi-kisi soal dalam bentuk tabel: indikator soal, level kognitif, bentuk soal, nomor soal.'},
+  {id:'18', cat:'Asesmen & Soal', title:'Soal HOTS', instr:'Buat 5 soal HOTS (Higher Order Thinking Skills) lengkap dengan kunci jawaban dan penjelasan level berpikirnya.'},
+  {id:'19', cat:'Asesmen & Soal', title:'Bank Soal', instr:'Buat bank soal: 10 pilihan ganda, 5 benar/salah, 5 menjodohkan, dan 3 essay, sesuai materi.'},
+  {id:'20', cat:'Asesmen & Soal', title:'Kunci Jawaban', instr:'Buat kunci jawaban lengkap untuk seluruh bentuk soal yang relevan dengan materi ini.'},
+  {id:'21', cat:'Asesmen & Soal', title:'Pedoman Penskoran', instr:'Buat pedoman penskoran yang menjelaskan bobot nilai tiap bentuk soal dan cara menghitung nilai akhir.'},
+  {id:'22', cat:'Tindak Lanjut', title:'Pengayaan', instr:'Buat program pengayaan untuk siswa yang telah mencapai kompetensi: aktivitas lanjutan, mini project, studi kasus.'},
+  {id:'23', cat:'Tindak Lanjut', title:'Remedial', instr:'Buat program remedial untuk siswa yang belum mencapai kompetensi: materi ulang ringkas dan latihan sederhana.'},
+  {id:'24', cat:'Tindak Lanjut', title:'Refleksi Guru', instr:'Buat lembar refleksi guru pasca pembelajaran berisi pertanyaan pemandu evaluasi diri.'},
+  {id:'25', cat:'Tindak Lanjut', title:'Refleksi Peserta Didik', instr:'Buat lembar refleksi siswa berisi pertanyaan sederhana sesuai jenjang kelas.'},
+  {id:'26', cat:'Tindak Lanjut', title:'Lembar Observasi', instr:'Buat lembar observasi sikap dan keterlibatan siswa selama pembelajaran dalam bentuk tabel checklist.'},
+  {id:'27', cat:'Tindak Lanjut', title:'Jurnal Guru', instr:'Buat format jurnal harian mengajar guru untuk mencatat proses dan hasil pembelajaran.'},
+  {id:'28', cat:'Proyek & AI', title:'Projek Mini', instr:'Rancang projek mini singkat yang relevan dengan materi, termasuk tujuan, langkah kerja, dan output yang diharapkan.'},
+  {id:'29', cat:'Proyek & AI', title:'Gamifikasi', instr:'Rancang skema gamifikasi sederhana (poin, level, badge, atau papan skor) untuk memotivasi siswa dalam mempelajari materi ini.'},
+  {id:'30', cat:'Proyek & AI', title:'Prompt AI untuk Siswa', instr:'Buat 3 prompt siap pakai untuk siswa gunakan di ChatGPT/Gemini/Claude guna membantu memahami materi secara mandiri.'}
+];
+const PRESET_INTI = ['01','04','05','06','07','16','19'];
+
+const results = {};
+
+// Memuat API Key dari LocalStorage jika ada
+window.onload = function() {
+  const savedKey = localStorage.getItem('claude_api_key');
+  if (savedKey) {
+    document.getElementById('apiKey').value = savedKey;
+  }
+  buildPicker();
+};
+
+function saveApiKey() {
+  const key = document.getElementById('apiKey').value.trim();
+  localStorage.setItem('claude_api_key', key);
+}
+
+function buildPicker(){
+  const cats = [...new Set(SECTIONS.map(s=>s.cat))];
+  const picker = document.getElementById('doc-picker');
+  picker.innerHTML = cats.map(cat=>{
+    const items = SECTIONS.filter(s=>s.cat===cat);
+    return `<div class="cat">
+      <div class="cat-title">${cat}</div>
+      <div class="doc-list">
+        ${items.map(s=>`
+          <label class="doc-item">
+            <input type="checkbox" data-id="${s.id}" onchange="updateCount()">
+            <span>${s.id}. ${s.title}</span>
+          </label>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  updateCount();
+}
+
+function applyPreset(kind){
+  const boxes = document.querySelectorAll('#doc-picker input[type=checkbox]');
+  boxes.forEach(b=>{
+    if(kind==='semua') b.checked = true;
+    else if(kind==='kosong') b.checked = false;
+    else if(kind==='inti') b.checked = PRESET_INTI.includes(b.dataset.id);
+  });
+  updateCount();
+}
+
+function updateCount(){
+  const n = document.querySelectorAll('#doc-picker input:checked').length;
+  document.getElementById('countNote').textContent = n + ' dokumen dipilih';
+}
+
+function getContext(){
+  return {
+    mapel: document.getElementById('mapel').value.trim() || '(belum diisi)',
+    kelas: document.getElementById('kelas').value.trim() || '(belum diisi)',
+    semester: document.getElementById('semester').value,
+    materi: document.getElementById('materi').value.trim() || '(belum diisi)',
+    waktu: document.getElementById('waktu').value.trim() || '(belum diisi)',
+    model: document.getElementById('model').value,
+    pertemuan: document.getElementById('pertemuan').value || '1'
+  };
+}
+
+function systemPrompt(ctx){
+  return `Kamu adalah guru senior, pengembang kurikulum, ahli Deep Learning dan TPACK, sekaligus asesor pendidikan di Indonesia.
+Buat dokumen perangkat pembelajaran yang diminta pengguna, berlandaskan Kurikulum Nasional, prinsip Deep Learning, TPACK, HOTS, Profil Pelajar Pancasila (P5), Computational Thinking, Differentiated Learning, dan Universal Design for Learning (UDL).
+
+Konteks pembelajaran:
+- Mata Pelajaran: ${ctx.mapel}
+- Kelas: ${ctx.kelas}
+- Semester: ${ctx.semester}
+- Materi: ${ctx.materi}
+- Alokasi Waktu: ${ctx.waktu}
+- Model Pembelajaran: ${ctx.model}
+- Jumlah Pertemuan: ${ctx.pertemuan}
+
+Tulis HANYA dokumen yang diminta pada pesan pengguna, langsung ke isi (tanpa basa-basi pembuka atau penutup). Gunakan format Markdown rapi (heading, tabel, checklist) agar mudah disalin ke Word/Google Docs. Sesuaikan bahasa dan kompleksitas dengan jenjang kelas yang disebutkan. Jawab ringkas namun lengkap karena ruang output terbatas.`;
+}
+
+async function generateSection(section, ctx){
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if(!apiKey) {
+    throw new Error('API Key Claude belum diisi. Masukkan API Key pada kotak atas.');
+  }
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: "claude-3-5-sonnet-20241022",
+      max_tokens: 1000,
+      system: systemPrompt(ctx),
+      messages: [{ role: "user", content: section.instr }]
+    })
+  });
+
+  if(!response.ok){
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error?.message || ('Permintaan gagal (' + response.status + ')'));
+  }
+
+  const data = await response.json();
+  const text = (data.content || []).map(b => b.text || '').join('\n').trim();
+  if(!text) throw new Error('Tidak ada konten yang dihasilkan.');
+  return text;
+}
+
+function renderResultsSkeleton(selected){
+  const wrap = document.getElementById('results');
+  wrap.innerHTML = selected.map(s=>`
+    <div class="result-card" id="card-${s.id}">
+      <div class="result-head" onclick="toggleCard('${s.id}')">
+        <h3><span class="result-num">${s.id}</span>${s.title}</h3>
+        <span class="status-badge pending" id="badge-${s.id}">Menunggu</span>
+      </div>
+      <div class="result-body" id="body-${s.id}"></div>
+    </div>
+  `).join('');
+}
+
+function toggleCard(id){
+  const body = document.getElementById('body-'+id);
+  body.classList.toggle('open');
+}
+
+function setBadge(id, state, label){
+  const b = document.getElementById('badge-'+id);
+  b.className = 'status-badge ' + state;
+  b.textContent = label;
+}
+
+async function startGeneration(){
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if(!apiKey){
+    alert('Silakan masukkan API Key Claude terlebih dahulu.');
+    return;
+  }
+
+  const selectedIds = [...document.querySelectorAll('#doc-picker input:checked')].map(b=>b.dataset.id);
+  if(selectedIds.length===0){ alert('Pilih minimal satu dokumen terlebih dahulu.'); return; }
+
+  const ctx = getContext();
+  const selected = SECTIONS.filter(s=>selectedIds.includes(s.id));
+
+  const genBtn = document.getElementById('genBtn');
+  genBtn.disabled = true;
+  genBtn.textContent = 'Sedang membuat...';
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('downloadBar').style.display = 'none';
+
+  renderResultsSkeleton(selected);
+
+  let done = 0;
+  for(const section of selected){
+    setBadge(section.id, 'loading', 'Membuat...');
+    document.getElementById('progressLabel').textContent = 'Membuat: ' + section.title + ' (' + (done+1) + '/' + selected.length + ')';
+    try{
+      const text = await generateSection(section, ctx);
+      results[section.id] = { title: section.title, text };
+      const body = document.getElementById('body-'+section.id);
+      body.innerHTML = `<div class="result-content">${marked.parse(text)}</div>
+        <div class="result-actions">
+          <button class="mini-btn" onclick="copySection('${section.id}')">Salin teks</button>
+        </div>`;
+      setBadge(section.id, 'done', 'Siap Pakai');
+    }catch(err){
+      const body = document.getElementById('body-'+section.id);
+      body.classList.add('open');
+      body.innerHTML = `<div class="err-text">Gagal membuat dokumen ini: ${err.message}. 
+        <button class="mini-btn" onclick="retrySection('${section.id}')">Coba lagi</button></div>`;
+      setBadge(section.id, 'error', 'Gagal');
+    }
+    done++;
+    document.getElementById('progressFill').style.width = Math.round(done/selected.length*100) + '%';
+  }
+
+  document.getElementById('progressLabel').textContent = 'Selesai: ' + done + '/' + selected.length + ' dokumen dibuat.';
+  genBtn.disabled = false;
+  genBtn.textContent = 'Buat Perangkat Pembelajaran';
+  if(Object.keys(results).length>0) document.getElementById('downloadBar').style.display = 'block';
+}
+
+async function retrySection(id){
+  const section = SECTIONS.find(s=>s.id===id);
+  const ctx = getContext();
+  setBadge(id, 'loading', 'Membuat...');
+  const body = document.getElementById('body-'+id);
+  body.innerHTML = '';
+  try{
+    const text = await generateSection(section, ctx);
+    results[id] = { title: section.title, text };
+    body.innerHTML = `<div class="result-content">${marked.parse(text)}</div>
+      <div class="result-actions">
+        <button class="mini-btn" onclick="copySection('${id}')">Salin teks</button>
+      </div>`;
+    setBadge(id, 'done', 'Siap Pakai');
+    if(Object.keys(results).length>0) document.getElementById('downloadBar').style.display = 'block';
+  }catch(err){
+    body.innerHTML = `<div class="err-text">Gagal membuat dokumen ini: ${err.message}.
+      <button class="mini-btn" onclick="retrySection('${id}')">Coba lagi</button></div>`;
+    setBadge(id, 'error', 'Gagal');
+  }
+}
+
+function copySection(id){
+  const r = results[id];
+  if(!r) return;
+  navigator.clipboard.writeText(r.text);
+}
+
+function downloadAll(){
+  const ctx = getContext();
+  let md = `# Perangkat Pembelajaran\n\n`;
+  md += `**Mata Pelajaran:** ${ctx.mapel}  \n**Kelas:** ${ctx.kelas}  \n**Semester:** ${ctx.semester}  \n**Materi:** ${ctx.materi}  \n**Alokasi Waktu:** ${ctx.waktu}  \n**Model Pembelajaran:** ${ctx.model}  \n**Jumlah Pertemuan:** ${ctx.pertemuan}\n\n---\n\n`;
+  SECTIONS.forEach(s=>{
+    if(results[s.id]){
+      md += `## ${s.id}. ${s.title}\n\n${results[s.id].text}\n\n---\n\n`;
+    }
+  });
+  const blob = new Blob([md], {type:'text/markdown'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'perangkat-pembelajaran.md';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
