@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Generator Sai Tools</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        banana: {
+                            50: '#fefce8',
+                            100: '#fef9c3',
+                            200: '#fef08a',
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                            700: '#a16207',
+                            800: '#854d0e',
+                            900: '#713f12',
+                            950: '#422006',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- React & ReactDOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #090d16;
+            color: #f1f5f9;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #eab308;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-banana-400 selection:text-slate-950">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // BANK KATEGORI LENGKAP A - M
+        const CATEGORY_BANK = [
+            {
+                id: 'A',
+                name: 'Latar Studio Profesional',
+                icon: 'camera',
+                items: [
+                    { title: 'Minimalist Velvet Portrait', background: 'latar kain beludru merah marun gelap', lighting: 'softbox studio tiga titik dengan key light 45 derajat dan rim light biru tipis', camera: 'potret medium format 85mm f/1.8' },
+                    { title: 'Duotone Shadow Geometry', background: 'dinding beton abu-abu studio dengan bayangan geometris venetian blind', lighting: 'pencahayaan duotone oranye hangat dan cyan dingin', camera: 'potret editorial 50mm f/2.0' },
+                    { title: 'Pure White Clean Headshot', background: 'studio putih bersih bersinar lembut', lighting: 'ring light terdistribusi merata dengan catchlight melingkar di mata', camera: 'clean portrait 70mm f/2.8' },
+                    { title: 'Infinity Mirror Futuristic', background: 'ruang cermin infinity dengan pantulan lampu strip LED tak terhingga', lighting: 'neon magenta dan biru neon kontras tinggi', camera: 'cinematic wide angle 24mm f/1.8' },
+                    { title: 'Atmospheric Studio Smoke', background: 'studio gelap dengan efek asap mistik melayang halus', lighting: 'spotlight backlight dramatis menembus kabut asap', camera: 'dramatis fashion 85mm f/1.4' }
+                ]
+            },
+            {
+                id: 'B',
+                name: 'Latar Outdoor & Alam',
+                icon: 'sun',
+                items: [
+                    { title: 'Sunset Pine Forest Dream', background: 'hutan pinus berkabut tebal dengan latar matahari terbenam', lighting: 'backlight hangat golden hour menembus celah dedaunan', camera: 'gaya foto film 35mm f/2.8 grain halus' },
+                    { title: 'Misty Bamboo Grove', background: 'hutan bambu Jepang hijau segar dengan kabut pagi tipis', lighting: 'cahaya alami terbiaskan lembut dari atas tajuk pohon', camera: 'potret alam 50mm f/1.8' },
+                    { title: 'Lavender Field Romance', background: 'ladang lavender ungu membentang luas hingga garis horison', lighting: 'cahaya sore hari berrona keemasan hangat', camera: 'telephoto portrait 105mm f/2.0' },
+                    { title: 'Reflective Mountain Lake', background: 'danau jernih dengan pantulan sempurna gunung bersalju', lighting: 'cahaya alami pagi hari blue hour yang tenang', camera: 'landscape portrait 35mm f/2.8' },
+                    { title: 'Golden Hour Terraced Rice', background: 'sawah terasering Bali dengan kilauan air di petakan sawah', lighting: 'cahaya emas senja bersudut rendah', camera: 'potret budaya 35mm f/2.0' }
+                ]
+            },
+            {
+                id: 'C',
+                name: 'Latar Urban & Kota',
+                icon: 'building',
+                items: [
+                    { title: 'Rainy Cyberpunk Alleyway', background: 'gang kota basah dengan refleksi air hujan dan papan neon toko', lighting: 'pencahayaan neon merah dan biru malam hari', camera: 'cinematic 35mm f/1.4 tajam' },
+                    { title: 'European Cafe Sidewalk', background: 'kafe jalanan klasik Paris dengan meja kecil dan tanaman gantung', lighting: 'cahaya pagi lembut bercampur lampu warm kafe', camera: 'editorial street 50mm f/1.8' },
+                    { title: 'Rooftop Skyline Twilight', background: 'atap gedung pencakar langit dengan pemandangan lanskap kota malam', lighting: 'cahaya senja blue hour dan kilauan lampu kota', camera: 'wide portrait 28mm f/2.0' },
+                    { title: 'Metro Station Symmetry', background: 'stasiun kereta bawah tanah modern dengan ubin simetris', lighting: 'lampu neon overhead linier yang terang', camera: 'urban street 35mm f/2.8' },
+                    { title: 'Industrial Loft Brick', background: 'dinding bata merah ekspos dengan pipa besi retro', lighting: 'cahaya jendela industri besar dari samping', camera: 'potret karakter 85mm f/1.8' }
+                ]
+            },
+            {
+                id: 'D',
+                name: 'Latar Estetik Kekinian',
+                icon: 'sparkles',
+                items: [
+                    { title: 'Soft Coquette Dream', background: 'kamar estetik bertirai renda, pita pastel, dan cermin vintage', lighting: 'cahaya alami pagi berpendar lembut tone pink cream', camera: 'polaroid vintage style f/2.0' },
+                    { title: 'Old Money Classic Library', background: 'perpustakaan kayu mahoni tua dengan buku-buku berjarak rapi', lighting: 'cahaya lampu meja baca hangat dan bayangan lembut', camera: 'klasik analog 50mm f/1.4' },
+                    { title: 'Y2K Metallic Glam', background: 'backdrop iridescent metalik mengkilap dengan efek tinsel', lighting: 'flash kamera langsung ala majalah 2000-an', camera: 'retro digital camera flash photography' },
+                    { title: 'Japandi Minimalist Wood', background: 'ruangan kayu ek terang minimalis dengan tanaman bonsai kecil', lighting: 'cahaya difus lembut dari pintu geser shoji', camera: 'clean aesthetic 35mm f/2.4' },
+                    { title: 'Dark Academia Gothic', background: 'ruang studi klasik dengan jendela lengkung besar dan jam kuno', lighting: 'cahaya moody moody dari jendela saat hari mendung', camera: 'cinematic portrait 85mm f/1.8' }
+                ]
+            },
+            {
+                id: 'E',
+                name: 'Latar Profesional & Korporat',
+                icon: 'briefcase',
+                items: [
+                    { title: 'LinkedIn Corporate Executive', background: 'kantor modern blur dengan latar tanaman hijau dan kaca', lighting: 'softbox studio profesional dua titik', camera: 'headshot profesional 85mm f/2.8' },
+                    { title: 'Tech Startup Coworking', background: 'ruang kerja terbuka bernuansa kayu dan interior lampu gantung', lighting: 'cahaya alami siang hari yang terang dan segar', camera: 'corporate editorial 50mm f/2.0' },
+                    { title: 'Keynote Speaker Stage', background: 'panggung seminar dengan layar latar belakang gelap elegan', lighting: 'spotlight panggung hangat menyorot subjek', camera: 'event portrait 70-200mm f/2.8' }
+                ]
+            },
+            {
+                id: 'F',
+                name: 'Latar Musiman & Perayaan',
+                icon: 'gift',
+                items: [
+                    { title: 'Warm Ramadan Lanterns', background: 'ruangan bernuansa Islami modern dengan lentera gantung berkilau', lighting: 'cahaya temaram hangat dari lentera tembaga dan bulan sabit', camera: 'potret hangat 50mm f/1.8' },
+                    { title: 'Festive Eid Ketupat Decor', background: 'latar dekorasi Idul Fitri kain ornamen hijau emas dan ukiran kayu', lighting: 'pencahayaan cerah dan hangat sekeluarga', camera: 'festive portrait 35mm f/2.0' },
+                    { title: 'Cozy Christmas Tree Lights', background: 'pohon Natal besar dengan hiasan bola emas dan lampu hangat bokeh', lighting: 'cahaya hangat perapian dan lampu hias Natal', camera: 'holiday portrait 85mm f/1.4' }
+                ]
+            },
+            {
+                id: 'G',
+                name: 'Latar Produk & E-commerce',
+                icon: 'shopping-bag',
+                items: [
+                    { title: 'Marble Botanical Skincare', background: 'permukaan batu marmer putih dengan aksen bayangan daun eucalyptus', lighting: 'cahaya studio lembut dari atas dengan refleksi air jernih', camera: 'makro komersial 100mm f/4.0' },
+                    { title: 'Floating Product Splash', background: 'produk melayang di udara dengan cipratan air transparan dinamis', lighting: 'strobe light studio kecepatan tinggi pembeku gerakan', camera: 'high speed commercial shot' },
+                    { title: 'Rustic Wooden Artisan', background: 'papan kayu rustic tua dengan kain linen kasar terlipat', lighting: 'cahaya jendela samping alami yang natural', camera: 'flatlay top-down 35mm f/4.0' }
+                ]
+            },
+            {
+                id: 'H',
+                name: 'Latar Fantasi & Surreal',
+                icon: 'wand2',
+                items: [
+                    { title: 'Celestial Galaxy Portal', background: 'portal cahaya kosmik melingkar dengan debu bintang berbinar', lighting: 'pencahayaan berpendar neon ungu dan biru keemasan', camera: 'surreal artwork style f/1.4' },
+                    { title: 'Floating Miniature World', background: 'pemandangan lanskap pulau melayang kecil di antara awan kapas', lighting: 'cahaya impian lembut seperti lukisan cat minyak', camera: 'surreal 3d render style' },
+                    { title: 'Submerged Underwater Dream', background: 'dunia bawah laut jernih dengan pendaran sinar matahari menembus air', lighting: 'caustics pendar air kebiruan alami', camera: 'underwater portrait 24mm f/2.0' }
+                ]
+            },
+            {
+                id: 'I',
+                name: 'Latar Fashion & Editorial',
+                icon: 'shirt',
+                items: [
+                    { title: 'High-Fashion Wind Tunnel', background: 'studio minimalis abu-abu polos dengan aksen efek angin kencang', lighting: 'key light keras kontras tinggi ala majalah Vogue', camera: 'fashion editorial 85mm f/1.8' },
+                    { title: 'Monochrome High Contrast', background: 'dinding monokrom hitam putih tajam dengan struktur arsitektur', lighting: 'hard light matahari terik dengan bayangan hitam pekat', camera: 'black and white editorial 50mm f/2.8' }
+                ]
+            },
+            {
+                id: 'J',
+                name: 'Latar Kuliner / Food',
+                icon: 'utensils',
+                items: [
+                    { title: 'Moody Dark Restaurant Table', background: 'meja kayu gelap restoran dengan steam uap panas mengepul', lighting: 'cahaya tunggal hangat dari lilin dan spotlight atas', camera: 'food photography 50mm f/2.0' },
+                    { title: 'Sunny Breakfast Flatlay', background: 'meja sarapan pagi bertabur roti hangat, buah segar, dan kopi', lighting: 'cahaya matahari pagi terang dari jendela samping', camera: 'top-down flatlay 35mm f/3.5' }
+                ]
+            },
+            {
+                id: 'K',
+                name: 'Latar Traveling & Prewedding',
+                icon: 'compass',
+                items: [
+                    { title: 'Misty Tea Plantation', background: 'kebun teh hijau membentang berbukit dengan kabut pagi berarak', lighting: 'cahaya fajar lembut menembus kabut tipis', camera: 'prewedding portrait 85mm f/1.8' },
+                    { title: 'Santorini Sunset Balcony', background: 'balkon putih khas Santorini dengan latar laut Aegean biru dan sunset', lighting: 'cahaya senja kemerahan eksotis', camera: 'travel portrait 35mm f/2.0' }
+                ]
+            },
+            {
+                id: 'L',
+                name: 'Ide Konten Media Sosial',
+                icon: 'share2',
+                items: [
+                    { title: 'Studio Mirror Selfie', background: 'pantulan cermin studio estetik bertuliskan kutipan tipografi', lighting: 'ringlight hangat alami di belakang cermin', camera: 'casual smartphone aesthetic photo' },
+                    { title: 'OOTD Streetwear Grid', background: 'latar dinding semen semen ekspos arsitektural', lighting: 'cahaya outdoor terbagi rata tanpa bayangan tajam', camera: 'full body OOTD shot 35mm f/2.8' }
+                ]
+            },
+            {
+                id: 'M',
+                name: 'Ide Desain Grafis Pendukung',
+                icon: 'layout',
+                items: [
+                    { title: 'Aesthetic Promo Banner', background: 'latar belakang bentuk abstrak pastel dengan area ruang kosong untuk teks', lighting: 'cahaya studio grafis bersih tanpa bayangan', camera: 'flat graphic product backdrop' },
+                    { title: 'Event Poster Background', background: 'gradasi warna neon modern bertema konserto festival', lighting: 'glow pendar warna neon terang', camera: 'graphic layout background design' }
+                ]
+            }
+        ];
+
+        function Icon({ name, className = "w-5 h-5" }) {
+            const icons = {
+                'camera': <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3zM12 18a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>,
+                'sun': <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/>,
+                'building': <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z M6 12h12 M6 7h12 M6 17h12"/>,
+                'sparkles': <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L12 3z"/>,
+                'briefcase': <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16 M2 9h20v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9z"/>,
+                'gift': <path d="M20 12v10H4V12 M2 7h20v5H2z M12 22V7 M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>,
+                'shopping-bag': <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z M3 6h18 M16 10a4 4 0 0 1-8 0"/>,
+                'wand2': <path d="m15 4-2 2 2 2 2-2-2-2z M12 11l-9 9 2 2 9-9-2-2z M20 9l-2 2 2 2 2-2-2-2z M9 2l-1 2 1 2 1-2-1-2z"/>,
+                'shirt': <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>,
+                'utensils': <path d="M18 2v20 M21 15V2a5 5 0 0 0-5 5v8h5z M3 2v7c0 1.1.9 2 2 2h2a2 2 0 0 0 2-2V2 M6 11v11"/>,
+                'compass': <g><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></g>,
+                'share2': <g><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></g>,
+                'layout': <g><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></g>,
+                'copy': <g><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g>,
+                'check': <polyline points="20 6 9 17 4 12"/>,
+                'heart': <path d="M19 14c1.49-1.46 3-3.21 3-5.5A4.5 4.5 0 0 0 16.5 4c-1.8 0-3 .58-4.5 2.1C10.5 4.58 9.3 4 7.5 4A4.5 4.5 0 0 0 3 8.5c0 2.29 1.51 4.04 3 5.5l6 6.5z"/>,
+                'refresh-cw': <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5 M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16 M21 21v-5h-5"/>,
+                'download': <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3"/>,
+                'x': <g><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></g>,
+                'send': <g><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></g>,
+                'play': <polygon points="5 3 19 12 5 21 5 3"/>,
+                'alert-triangle': <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z M12 9v4 M12 17h.01"/>,
+                'message-square': <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>,
+                'search': <g><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></g>,
+                'grid': <g><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></g>,
+                'list': <g><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></g>
+            };
+
+            return (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={className}
+                >
+                    {icons[name] || <circle cx="12" cy="12" r="9"/>}
+                </svg>
+            );
+        }
+
+        // Generator Prompt Lokal Berdasarkan 5 Unsur Nano Banana
+        function generateLocalPrompts({ subjectType, purpose, selectedCategories, mode, count, customMood }) {
+            const results = [];
+            
+            // Subjek Deskriptif
+            const subjectsMap = {
+                'orang': [
+                    'wanita muda berhijab dengan ekspresi senyum santai dan percaya diri',
+                    'pria muda Asia berpakaian kemeja linen casual dengan tatapan hangat',
+                    'model wanita profesional berpakaian blazer modern dengan pose berdiri elegan',
+                    'pria dewasa bergaya streetwear trendi dengan postur tubuh santai',
+                    'wanita muda berwajah segar tanpa makeup tebal dengan senyum alami'
+                ],
+                'produk': [
+                    'botol skincare kaca premium transparan dengan label minimalis',
+                    'sepatu sneakers edisi terbatas berdesain futuristik dan bersih',
+                    'jam tangan kemewahan dengan tali kulit asli dan aksen logam emas',
+                    'tas tangan wanita berbahan kulit sintetis warna nude yang elegan',
+                    'kemasan minuman kopi dingin dalam kaleng estetis berembun'
+                ],
+                'makanan': [
+                    'piring gourmet berisi hidangan pasta krim bertabur keju parmesan dan peterseli segar',
+                    'cangkir kopi porselen putih berisi latte art angsa yang sempurna',
+                    'burger keju berlapis daging juicy, selada segar, dan lelehan keju cheddar',
+                    'mangkuk smoothie buah naga berkilau dengan topping biji chia dan irisan pisang',
+                    'potongan kue cokelat lumer berselimut saus karamel manis'
+                ],
+                'lainnya': [
+                    'kucing ras British Shorthair berbulu abu-abu lebat duduk dengan anggun',
+                    'tanaman hias monstera hijau segar dalam pot keramik putih',
+                    'set meja kerja minimalis berisi laptop tipis, buku catatan, dan kopi',
+                    'mobil sport klasik warna merah mengkilap terparkir rapi',
+                    'buket bunga mawar merah dan baby breath terikat pita satin'
+                ]
+            };
+
+            const selectedSubjects = subjectsMap[subjectType] || subjectsMap['orang'];
+            const activeCategories = CATEGORY_BANK.filter(cat => selectedCategories.includes(cat.id));
+            const categoryPool = activeCategories.length > 0 ? activeCategories : CATEGORY_BANK;
+
+            let promptCounter = 1;
+
+            while (results.length < count) {
+                const categoryObj = categoryPool[(promptCounter - 1) % categoryPool.length];
+                const itemObj = categoryObj.items[(promptCounter - 1) % categoryObj.items.length];
+                const subjekText = selectedSubjects[(promptCounter - 1) % selectedSubjects.length];
+
+                // Menyiapkan 5 Unsur Wajib
+                let subjekFull = subjekText;
+                let poseAction = mode === 'edit' ? 'pertahankan pose dan ekspresi asli subjek' : 'menghadap ke arah kamera dengan sikap alami';
+                let latarText = itemObj.background;
+                let lightingText = itemObj.lighting;
+                let cameraText = itemObj.camera;
+                
+                if (customMood && customMood.trim() !== '') {
+                    lightingText += `, beratap nuansa ${customMood.trim()}`;
+                }
+
+                // Menyusun Narasi Lengkap
+                let promptNarration = '';
+                if (mode === 'edit') {
+                    promptNarration = `Ubah latar foto ini: pertahankan wajah, ekspresi, dan pose asli dari subjek (${subjekFull}). Ganti latar belakang menjadi ${latarText}. Sesuaikan pencahayaan subjek dengan ${lightingText}. Render menggunakan ${cameraText}, kualitas ultra-high resolution.`;
+                } else {
+                    promptNarration = `Foto potret berkualitas tinggi dari ${subjekFull}, ${poseAction}. Latar belakang ${latarText}. Pencahayaan ${lightingText}. Ditembak menggunakan ${cameraText}, fokus tajam pada subjek, kedalaman ruang yang realistis, foto jernih tanpa cacat.`;
+                }
+
+                results.push({
+                    id: `prompt-${promptCounter}-${Date.now()}`,
+                    number: promptCounter,
+                    title: `${itemObj.title}`,
+                    categoryLetter: categoryObj.id,
+                    categoryName: categoryObj.name,
+                    prompt: promptNarration,
+                    suitableFor: `${purpose} - Konten ${categoryObj.name.toLowerCase()}`
+                });
+
+                promptCounter++;
+            }
+
+            return results;
+        }
+
+        async function fetchGeminiPrompts({ subjectType, purpose, selectedCategories, mode, count, customMood }) {
+            const apiKey = ""; // Canvas runtime auto-injects key if empty
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const activeCatNames = CATEGORY_BANK
+                .filter(c => selectedCategories.includes(c.id))
+                .map(c => `${c.id}. ${c.name}`)
+                .join(', ');
+
+            const systemPrompt = `Kamu adalah Creative Director & Prompt Engineer khusus untuk Nano Banana / Gemini Image.
+Tugasmu: Hasilnya HARUS berupa JSON ARRAY murni tanpa tag markdown backtick.
+Setiap item JSON memuat properti:
+- "title": nama gaya/tema singkat
+- "categoryLetter": huruf kategori (misal "A", "B", "C")
+- "categoryName": nama kategori lengkap
+- "prompt": narasi prompt 5 unsur lengkap (Subjek, Pose/Aksi, Latar, Pencahayaan, Gaya Kamera/Render). Jika mode edit, harus ada instruksi "pertahankan wajah, ekspresi, dan pose asli, hanya ubah...".
+- "suitableFor": peruntukan konten singkat.`;
+
+            const userQuery = `Buatkan tepat ${count} prompt foto unik untuk:
+- Jenis Subjek: ${subjectType}
+- Tujuan: ${purpose}
+- Kategori pilihan: ${activeCatNames || 'Semua Kategori A-M'}
+- Mode: ${mode === 'edit' ? 'EDIT FOTO (Jaga konsistensi wajah/subjek asli)' : 'BUAT FOTO BARU'}
+- Mood/Gaya Opsional: ${customMood || 'bebas kreatif'}
+
+Kembalikan ARRAY JSON objek persis sebanyak ${count} item.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json"
+                }
+            };
+
+            const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                throw new Error("Gagal menghubungi Gemini AI API. Menggunakan generator lokal fallback.");
+            }
+
+            const data = await res.json();
+            const rawJsonText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!rawJsonText) {
+                throw new Error("Respon Gemini AI kosong.");
+            }
+
+            const parsed = JSON.parse(rawJsonText);
+            return parsed.map((item, index) => ({
+                id: `gemini-prompt-${index + 1}-${Date.now()}`,
+                number: index + 1,
+                title: item.title || `Prompt Kreatif ${index + 1}`,
+                categoryLetter: item.categoryLetter || 'A',
+                categoryName: item.categoryName || 'Latar Studio Profesional',
+                prompt: item.prompt,
+                suitableFor: item.suitableFor || purpose
+            }));
+        }
+
+        function App() {
+            // Form State
+            const [subjectType, setSubjectType] = useState('orang');
+            const [purpose, setPurpose] = useState('media sosial & portofolio');
+            const [selectedCategories, setSelectedCategories] = useState(['A', 'B', 'C', 'D']);
+            const [count, setCount] = useState(25);
+            const [customMood, setCustomMood] = useState('');
+            const [mode, setMode] = useState('new');
+
+            // Output & App State
+            const [prompts, setPrompts] = useState([]);
+            const [isLoading, setIsLoading] = useState(false);
+            const [isAiGenerating, setIsAiGenerating] = useState(false);
+            const [activeFilterCategory, setActiveFilterCategory] = useState('ALL');
+            const [searchTerm, setSearchTerm] = useState('');
+            const [viewMode, setViewMode] = useState('cards');
+            const [copiedId, setCopiedId] = useState(null);
+            const [favorites, setFavorites] = useState([]);
+
+            // Modal Render Test State
+            const [previewModalPrompt, setPreviewModalPrompt] = useState(null);
+            const [editablePromptText, setEditablePromptText] = useState('');
+            const [selectedModel, setSelectedModel] = useState('gemini-3.1-flash-image-preview');
+            const [aspectRatio, setAspectRatio] = useState('1:1');
+            const [previewImage, setPreviewImage] = useState(null);
+            const [isImageLoading, setIsImageLoading] = useState(false);
+            const [imageError, setImageError] = useState(null);
+            const [loadingMessage, setLoadingMessage] = useState('');
+
+            // Multi-Turn Interactive Edit State
+            const [chatHistory, setChatHistory] = useState([]);
+            const [followUpInput, setFollowUpInput] = useState('');
+
+            // Initial Prompt Loading
+            useEffect(() => {
+                handleGeneratePrompts(false);
+            }, []);
+
+            const toggleCategory = (catId) => {
+                if (selectedCategories.includes(catId)) {
+                    setSelectedCategories(selectedCategories.filter(id => id !== catId));
+                } else {
+                    setSelectedCategories([...selectedCategories, catId]);
+                }
+            };
+
+            const selectAllCategories = () => {
+                setSelectedCategories(CATEGORY_BANK.map(c => c.id));
+            };
+
+            const clearCategories = () => {
+                setSelectedCategories([]);
+            };
+
+            // Handler Eksekusi Generator
+            const handleGeneratePrompts = async (useGemini = false) => {
+                setIsLoading(true);
+                setIsAiGenerating(useGemini);
+                try {
+                    if (useGemini) {
+                        const result = await fetchGeminiPrompts({
+                            subjectType, purpose, selectedCategories, mode, count, customMood
+                        });
+                        setPrompts(result);
+                    } else {
+                        const result = generateLocalPrompts({
+                            subjectType, purpose, selectedCategories, mode, count, customMood
+                        });
+                        setPrompts(result);
+                    }
+                } catch (err) {
+                    console.warn("AI Generation fallback executed:", err);
+                    const fallback = generateLocalPrompts({
+                        subjectType, purpose, selectedCategories, mode, count, customMood
+                    });
+                    setPrompts(fallback);
+                } finally {
+                    setIsLoading(false);
+                    setIsAiGenerating(false);
+                }
+            };
+
+            // Copy Handler yang Kompatibel dengan iFrame
+            const handleCopy = (text, id) => {
+                try {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+
+                    setCopiedId(id);
+                    setTimeout(() => setCopiedId(null), 2000);
+                } catch (err) {
+                    console.error("Gagal menyalin:", err);
+                }
+            };
+
+            // Favorite Toggle
+            const toggleFavorite = (id) => {
+                if (favorites.includes(id)) {
+                    setFavorites(favorites.filter(fId => fId !== id));
+                } else {
+                    setFavorites([...favorites, id]);
+                }
+            };
+
+            // Filter logic
+            const filteredPrompts = useMemo(() => {
+                return prompts.filter(p => {
+                    const matchesCategory = activeFilterCategory === 'ALL' || 
+                                           (activeFilterCategory === 'FAV' ? favorites.includes(p.id) : p.categoryLetter === activeFilterCategory);
+                    const matchesSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                          p.prompt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                          p.categoryName.toLowerCase().includes(searchTerm.toLowerCase());
+                    return matchesCategory && matchesSearch;
+                });
+            }, [prompts, activeFilterCategory, searchTerm, favorites]);
+
+            // Render Image API Engine
+            const renderImageApi = async ({ promptText, model, ratio, historyPayload = null }) => {
+                const apiKey = ""; // Runtime auto-inject
+                
+                if (model === 'gemini-3.1-flash-image-preview') {
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`;
+                    
+                    let contents = [];
+                    if (historyPayload && historyPayload.length > 0) {
+                        contents = historyPayload;
+                    } else {
+                        contents = [{
+                            role: 'user',
+                            parts: [{ text: promptText }]
+                        }];
+                    }
+
+                    const payload = {
+                        contents: contents,
+                        generationConfig: {
+                            responseModalities: ['IMAGE'],
+                            imageConfig: { aspectRatio: ratio }
+                        }
+                    };
+
+                    const res = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Gagal memproses via Gemini 3.1 Flash Image (Status: ${res.status}).`);
+                    }
+
+                    const data = await res.json();
+                    const candidate = data?.candidates?.[0];
+                    const part = candidate?.content?.parts?.find(p => p.inlineData);
+
+                    if (part && part.inlineData?.data) {
+                        return {
+                            imageUrl: `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`,
+                            modelTurn: candidate.content
+                        };
+                    } else {
+                        throw new Error("Respon tidak memuat data gambar dari Gemini 3.1.");
+                    }
+                } else {
+                    // Imagen 4.0
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+                    const payload = {
+                        instances: [{ prompt: promptText }],
+                        parameters: { sampleCount: 1 }
+                    };
+
+                    const res = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        throw new Error(`Gagal memproses via Imagen 4.0 (Status: ${res.status}).`);
+                    }
+
+                    const data = await res.json();
+                    if (data.predictions && data.predictions.length > 0 && data.predictions[0].bytesBase64Encoded) {
+                        return {
+                            imageUrl: `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`,
+                            modelTurn: null
+                        };
+                    } else {
+                        throw new Error("Respon tidak memuat data gambar dari Imagen 4.0.");
+                    }
+                }
+            };
+
+            // Handler Buka / Test Render
+            const handleTestPrompt = async (promptObj, overrideText = null, overrideModel = null, overrideRatio = null) => {
+                const textToUse = overrideText !== null ? overrideText : (promptObj ? promptObj.prompt : editablePromptText);
+                const modelToUse = overrideModel || selectedModel;
+                const ratioToUse = overrideRatio || aspectRatio;
+
+                if (promptObj) setPreviewModalPrompt(promptObj);
+                setEditablePromptText(textToUse);
+                setPreviewImage(null);
+                setImageError(null);
+                setIsImageLoading(true);
+                setChatHistory([]);
+                setFollowUpInput('');
+
+                const loadingSteps = [
+                    "Mengirim 5 Unsur Wajib ke Nano Banana Engine...",
+                    "Menyesuaikan lighting, komposisi, & rasio " + ratioToUse + "...",
+                    "Sintesis piksel resolusi tinggi..."
+                ];
+                let step = 0;
+                setLoadingMessage(loadingSteps[0]);
+                const timer = setInterval(() => {
+                    step = (step + 1) % loadingSteps.length;
+                    setLoadingMessage(loadingSteps[step]);
+                }, 1600);
+
+                try {
+                    const result = await renderImageApi({
+                        promptText: textToUse,
+                        model: modelToUse,
+                        ratio: ratioToUse
+                    });
+                    setPreviewImage(result.imageUrl);
+                    if (result.modelTurn) {
+                        setChatHistory([
+                            { role: 'user', parts: [{ text: textToUse }] },
+                            result.modelTurn
+                        ]);
+                    }
+                } catch (err) {
+                    console.error("Image render error:", err);
+                    setImageError(err.message || "Gagal merender gambar sampel.");
+                } finally {
+                    clearInterval(timer);
+                    setIsImageLoading(false);
+                }
+            };
+
+            // Multi-turn Edit Handler
+            const handleFollowUpEdit = async () => {
+                if (!followUpInput.trim() || isImageLoading) return;
+                const editInstruction = followUpInput.trim();
+                setFollowUpInput('');
+                setIsImageLoading(true);
+                setImageError(null);
+                setLoadingMessage("Nano Banana sedang menerapkan instruksi edit Anda...");
+
+                const nextHistory = [
+                    ...chatHistory,
+                    { role: 'user', parts: [{ text: editInstruction }] }
+                ];
+
+                try {
+                    const result = await renderImageApi({
+                        promptText: editInstruction,
+                        model: 'gemini-3.1-flash-image-preview',
+                        ratio: aspectRatio,
+                        historyPayload: nextHistory
+                    });
+                    setPreviewImage(result.imageUrl);
+                    if (result.modelTurn) {
+                        setChatHistory([
+                            ...nextHistory,
+                            result.modelTurn
+                        ]);
+                    }
+                } catch (err) {
+                    console.error("Multi-turn edit error:", err);
+                    setImageError(err.message || "Gagal menerapkan instruksi edit lanjutan.");
+                } finally {
+                    setIsImageLoading(false);
+                }
+            };
+
+            // Export ke File TXT
+            const exportToText = () => {
+                let content = `NANO BANANA PROMPT STUDIO - DAFTAR PROMPT (${prompts.length} IDE)\n`;
+                content += `Jenis Foto: ${subjectType} | Tujuan: ${purpose} | Mode: ${mode}\n`;
+                content += `=`.repeat(60) + `\n\n`;
+
+                prompts.forEach((p, i) => {
+                    content += `${i + 1}. ${p.title} — (${p.categoryName})\n`;
+                    content += `Prompt: "${p.prompt}"\n`;
+                    content += `Cocok untuk: ${p.suitableFor}\n\n`;
+                });
+
+                const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Nano_Banana_Prompts_${Date.now()}.txt`;
+                a.click();
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <header className="bg-slate-900/90 border-b border-slate-800 backdrop-blur-md sticky top-0 z-40">
+                        <div className="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-banana-500 to-amber-300 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-banana-500/20">
+                                    <Icon name="sparkles" className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                                        Prompt Generator <span className="text-banana-400 font-extrabold text-xs uppercase px-2 py-0.5 rounded-full bg-banana-500/10 border border-banana-500/30">Saiyudi Tools</span>
+                                    </h1>
+                                    <p className="text-xs text-slate-400">Generator Khusus Foto AI (Gemini Image)</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={exportToText}
+                                    disabled={prompts.length === 0}
+                                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 flex items-center gap-1.5 transition-all"
+                                >
+                                    <Icon name="download" className="w-4 h-4 text-banana-400" />
+                                    Ekspor TXT ({prompts.length})
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        {/* LEFT PANEL: FORM PARAMETER (5 Pertanyaan Wajib) */}
+                        <div className="lg:col-span-4 space-y-5">
+                            <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+                                <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
+                                    <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                                        <Icon name="wand2" className="w-4 h-4 text-banana-400" />
+                                        Parameter Prompt
+                                    </h2>
+                                    <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">5 Pertanyaan</span>
+                                </div>
+
+                                {/* 1. Jenis Foto Dasar */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">1. Jenis Foto Dasar Subjek</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {[
+                                            { id: 'orang', label: 'Orang / Potret' },
+                                            { id: 'produk', label: 'Produk' },
+                                            { id: 'makanan', label: 'Kuliner / Food' },
+                                            { id: 'lainnya', label: 'Lainnya / Hewan' }
+                                        ].map(t => (
+                                            <button
+                                                key={t.id}
+                                                onClick={() => setSubjectType(t.id)}
+                                                className={`py-2 px-3 rounded-xl text-xs font-medium border text-left transition-all ${
+                                                    subjectType === t.id
+                                                        ? 'bg-banana-500/10 border-banana-400 text-banana-400 font-bold'
+                                                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                                                }`}
+                                            >
+                                                {t.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Mode Aksi */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Mode Operasi Nano Banana</label>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setMode('new')}
+                                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-semibold border transition-all ${
+                                                mode === 'new'
+                                                    ? 'bg-banana-500 text-slate-950 border-banana-400 font-bold'
+                                                    : 'bg-slate-950 border-slate-800 text-slate-400'
+                                            }`}
+                                        >
+                                            Buat Foto Baru
+                                        </button>
+                                        <button
+                                            onClick={() => setMode('edit')}
+                                            className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-semibold border transition-all ${
+                                                mode === 'edit'
+                                                    ? 'bg-banana-500 text-slate-950 border-banana-400 font-bold'
+                                                    : 'bg-slate-950 border-slate-800 text-slate-400'
+                                            }`}
+                                        >
+                                            Edit Foto Asli
+                                        </button>
+                                    </div>
+                                    {mode === 'edit' && (
+                                        <p className="text-[10px] text-banana-400/90 mt-1 italic">
+                                            *Otomatis menambahkan instruksi wajib: "pertahankan wajah, ekspresi, dan pose asli...".
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* 2. Tujuan Penggunaan */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">2. Tujuan Penggunaan</label>
+                                    <input
+                                        type="text"
+                                        value={purpose}
+                                        onChange={(e) => setPurpose(e.target.value)}
+                                        placeholder="Misal: media sosial, katalog toko, portofolio..."
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-banana-400"
+                                    />
+                                </div>
+
+                                {/* 3. Kategori yang Diinginkan */}
+                                <div>
+                                    <div className="flex justify-between items-center mb-1.5">
+                                        <label className="text-xs font-semibold text-slate-300">3. Bank Kategori Pilihan (A-M)</label>
+                                        <div className="flex gap-2 text-[10px]">
+                                            <button onClick={selectAllCategories} className="text-banana-400 hover:underline">Pilih Semua</button>
+                                            <span className="text-slate-600">|</span>
+                                            <button onClick={clearCategories} className="text-slate-400 hover:underline">Bersihkan</button>
+                                        </div>
+                                    </div>
+                                    <div className="max-h-48 overflow-y-auto space-y-1 pr-1 bg-slate-950 p-2 rounded-xl border border-slate-800/80">
+                                        {CATEGORY_BANK.map(cat => (
+                                            <label
+                                                key={cat.id}
+                                                className={`flex items-center gap-2 p-1.5 rounded-lg text-xs cursor-pointer select-none transition-colors ${
+                                                    selectedCategories.includes(cat.id)
+                                                        ? 'bg-slate-900 text-banana-300 font-medium'
+                                                        : 'text-slate-400 hover:text-slate-200'
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCategories.includes(cat.id)}
+                                                    onChange={() => toggleCategory(cat.id)}
+                                                    className="accent-banana-500 rounded"
+                                                />
+                                                <span className="font-bold text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">{cat.id}</span>
+                                                <span className="truncate">{cat.name}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* 4. Jumlah Variasi */}
+                                <div>
+                                    <div className="flex justify-between text-xs font-semibold text-slate-300 mb-1.5">
+                                        <span>4. Jumlah Variasi Prompt</span>
+                                        <span className="text-banana-400 font-bold">{count} Prompt</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="range"
+                                            min="5"
+                                            max="100"
+                                            step="5"
+                                            value={count}
+                                            onChange={(e) => setCount(parseInt(e.target.value))}
+                                            className="flex-1 accent-banana-400 bg-slate-950 rounded-lg cursor-pointer h-2"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* 5. Mood / Warna Favorit */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">5. Gaya / Mood / Warna (Opsional)</label>
+                                    <input
+                                        type="text"
+                                        value={customMood}
+                                        onChange={(e) => setCustomMood(e.target.value)}
+                                        placeholder="Misal: cinematic warm golden, moody dark, pastel dreamy..."
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-banana-400"
+                                    />
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="pt-2 space-y-2">
+                                    <button
+                                        onClick={() => handleGeneratePrompts(false)}
+                                        disabled={isLoading}
+                                        className="w-full py-2.5 bg-banana-500 hover:bg-banana-400 text-slate-950 font-bold rounded-2xl text-xs transition-all shadow-lg shadow-banana-500/20 flex items-center justify-center gap-2"
+                                    >
+                                        <Icon name="sparkles" className="w-4 h-4" />
+                                        ⚡ Hasilkan Prompt Instan ({count})
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleGeneratePrompts(true)}
+                                        disabled={isLoading}
+                                        className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-banana-300 font-bold rounded-2xl text-xs border border-banana-500/30 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Icon name="wand2" className="w-4 h-4 text-banana-400" />
+                                        ✨ Generasi Kreatif via Gemini AI
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT PANEL: PROMPT OUTPUT LIST & FILTER */}
+                        <div className="lg:col-span-8 space-y-4">
+                            {/* Controls & Search Bar */}
+                            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-md">
+                                <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                                    <Icon name="search" className="w-4 h-4 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        placeholder="Cari kata kunci, subjek, atau latar..."
+                                        className="bg-transparent text-xs text-slate-200 focus:outline-none w-full"
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setViewMode('cards')}
+                                        className={`p-2 rounded-xl text-xs border transition-all ${
+                                            viewMode === 'cards' ? 'bg-banana-500/20 border-banana-400 text-banana-400' : 'bg-slate-950 border-slate-800 text-slate-400'
+                                        }`}
+                                        title="Tampilan Kartu"
+                                    >
+                                        <Icon name="grid" className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('table')}
+                                        className={`p-2 rounded-xl text-xs border transition-all ${
+                                            viewMode === 'table' ? 'bg-banana-500/20 border-banana-400 text-banana-400' : 'bg-slate-950 border-slate-800 text-slate-400'
+                                        }`}
+                                        title="Tampilan Tabel Ringkas"
+                                    >
+                                        <Icon name="list" className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Filter Kategori Horizontal */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                                <button
+                                    onClick={() => setActiveFilterCategory('ALL')}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                                        activeFilterCategory === 'ALL'
+                                            ? 'bg-banana-500 text-slate-950 font-bold'
+                                            : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                                    }`}
+                                >
+                                    Semua ({prompts.length})
+                                </button>
+                                <button
+                                    onClick={() => setActiveFilterCategory('FAV')}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1 ${
+                                        activeFilterCategory === 'FAV'
+                                            ? 'bg-rose-500 text-white font-bold'
+                                            : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                                    }`}
+                                >
+                                    <Icon name="heart" className="w-3.5 h-3.5 fill-current" />
+                                    Favorit ({favorites.length})
+                                </button>
+                                {CATEGORY_BANK.map(cat => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => setActiveFilterCategory(cat.id)}
+                                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                                            activeFilterCategory === cat.id
+                                                ? 'bg-banana-500 text-slate-950 font-bold'
+                                                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                                        }`}
+                                    >
+                                        {cat.id}. {cat.name.split(' ')[0]}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Content Output List */}
+                            {isLoading ? (
+                                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-12 text-center space-y-4">
+                                    <div className="w-12 h-12 border-4 border-banana-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                    <p className="text-sm font-medium text-slate-300 animate-pulse">
+                                        {isAiGenerating ? 'Meminta Gemini AI merancang prompt 5 unsur...' : 'Menyusun variasi prompt Nano Banana...'}
+                                    </p>
+                                </div>
+                            ) : filteredPrompts.length === 0 ? (
+                                <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-12 text-center space-y-2">
+                                    <Icon name="search" className="w-8 h-8 text-slate-600 mx-auto" />
+                                    <p className="text-sm font-medium text-slate-400">Tidak ada prompt yang sesuai dengan kriteria filter.</p>
+                                </div>
+                            ) : viewMode === 'cards' ? (
+                                <div className="space-y-3.5">
+                                    {filteredPrompts.map((p, idx) => (
+                                        <div
+                                            key={p.id}
+                                            className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all space-y-3 relative group"
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-extrabold text-banana-400 bg-banana-500/10 px-2.5 py-1 rounded-lg border border-banana-500/20">
+                                                        #{idx + 1}
+                                                    </span>
+                                                    <h3 className="text-sm font-bold text-white">{p.title}</h3>
+                                                    <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700">
+                                                        {p.categoryName}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => toggleFavorite(p.id)}
+                                                        className={`p-1.5 rounded-lg transition-colors ${
+                                                            favorites.includes(p.id) ? 'text-rose-500 fill-rose-500' : 'text-slate-500 hover:text-slate-300'
+                                                        }`}
+                                                        title="Simpan Favorit"
+                                                    >
+                                                        <Icon name="heart" className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Text Prompt Area */}
+                                            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 font-mono text-xs text-slate-200 leading-relaxed select-all">
+                                                <span className="text-banana-400/80 font-bold select-none">Prompt: </span>
+                                                "{p.prompt}"
+                                            </div>
+
+                                            <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+                                                <span><strong className="text-slate-300">Cocok untuk:</strong> {p.suitableFor}</span>
+                                                
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => handleTestPrompt(p)}
+                                                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-banana-400 font-semibold rounded-xl border border-banana-500/30 flex items-center gap-1 transition-all"
+                                                    >
+                                                        <Icon name="play" className="w-3.5 h-3.5" />
+                                                        Tes Render
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleCopy(p.prompt, p.id)}
+                                                        className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all ${
+                                                            copiedId === p.id
+                                                                ? 'bg-emerald-500 text-slate-950'
+                                                                : 'bg-banana-500 hover:bg-banana-400 text-slate-950'
+                                                        }`}
+                                                    >
+                                                        <Icon name={copiedId === p.id ? 'check' : 'copy'} className="w-3.5 h-3.5" />
+                                                        {copiedId === p.id ? 'Tersalin!' : 'Salin Prompt'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                /* Table View */
+                                <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse text-xs">
+                                            <thead>
+                                                <tr className="bg-slate-950 text-slate-400 border-b border-slate-800">
+                                                    <th className="p-3">#</th>
+                                                    <th className="p-3">Gaya & Kategori</th>
+                                                    <th className="p-3">Kalimat Prompt (Siap Tempel)</th>
+                                                    <th className="p-3 text-right">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-800/60">
+                                                {filteredPrompts.map((p, idx) => (
+                                                    <tr key={p.id} className="hover:bg-slate-800/40 transition-colors">
+                                                        <td className="p-3 font-bold text-banana-400">{idx + 1}</td>
+                                                        <td className="p-3 font-semibold text-white whitespace-nowrap">
+                                                            <div>{p.title}</div>
+                                                            <div className="text-[10px] text-slate-500">{p.categoryName}</div>
+                                                        </td>
+                                                        <td className="p-3 font-mono text-slate-300 max-w-md truncate">
+                                                            "{p.prompt}"
+                                                        </td>
+                                                        <td className="p-3 text-right whitespace-nowrap">
+                                                            <div className="flex justify-end gap-1.5">
+                                                                <button
+                                                                    onClick={() => handleTestPrompt(p)}
+                                                                    className="p-1.5 bg-slate-800 text-banana-400 rounded-lg border border-slate-700"
+                                                                    title="Tes Render"
+                                                                >
+                                                                    <Icon name="play" className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleCopy(p.prompt, p.id)}
+                                                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold ${
+                                                                        copiedId === p.id ? 'bg-emerald-500 text-slate-950' : 'bg-banana-500 text-slate-950'
+                                                                    }`}
+                                                                >
+                                                                    {copiedId === p.id ? 'Tersalin' : 'Salin'}
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+
+                    {previewModalPrompt && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+                            <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative my-auto">
+                                <button
+                                    onClick={() => setPreviewModalPrompt(null)}
+                                    className="absolute right-4 top-4 text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800 transition-all z-10"
+                                >
+                                    <Icon name="x" className="w-5 h-5" />
+                                </button>
+
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-banana-500/20 text-banana-400 rounded-xl">
+                                        <Icon name="sparkles" className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <span className="text-[11px] text-banana-400 font-bold uppercase tracking-wider">Studio Tes Render Interactive</span>
+                                        <h3 className="text-base font-bold text-white">{previewModalPrompt.title}</h3>
+                                    </div>
+                                </div>
+
+                                {/* Controls: Model & Aspect Ratio */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-950 p-3.5 rounded-2xl border border-slate-800">
+                                    <div>
+                                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">Model AI Generator</label>
+                                        <select
+                                            value={selectedModel}
+                                            onChange={(e) => {
+                                                setSelectedModel(e.target.value);
+                                                handleTestPrompt(null, editablePromptText, e.target.value, aspectRatio);
+                                            }}
+                                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-banana-400"
+                                        >
+                                            <option value="gemini-3.1-flash-image-preview">Gemini 3.1 Flash Image (Multi-Turn Edit)</option>
+                                            <option value="imagen-4.0-generate-001">Imagen 4.0 (Ultra High Detail)</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[11px] font-semibold text-slate-400 mb-1">Rasio Aspek Gambar</label>
+                                        <div className="flex gap-1.5">
+                                            {['1:1', '16:9', '9:16', '4:3', '3:4'].map((ratio) => (
+                                                <button
+                                                    key={ratio}
+                                                    onClick={() => {
+                                                        setAspectRatio(ratio);
+                                                        handleTestPrompt(null, editablePromptText, selectedModel, ratio);
+                                                    }}
+                                                    className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-semibold border transition-all ${
+                                                        aspectRatio === ratio
+                                                            ? 'bg-banana-500 text-slate-950 border-banana-400 font-bold'
+                                                            : 'bg-slate-900 text-slate-400 border-slate-700 hover:border-slate-500'
+                                                    }`}
+                                                >
+                                                    {ratio}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Editable Text Prompt Area */}
+                                <div className="space-y-1.5">
+                                    <div className="flex justify-between items-center text-[11px]">
+                                        <label className="font-semibold text-slate-300">Teks Prompt (Dapat Diedit):</label>
+                                        <button
+                                            onClick={() => handleCopy(editablePromptText, 'modal-copy')}
+                                            className="text-banana-400 hover:underline flex items-center gap-1"
+                                        >
+                                            <Icon name="copy" className="w-3 h-3" />
+                                            {copiedId === 'modal-copy' ? 'Tersalin!' : 'Salin Prompt'}
+                                        </button>
+                                    </div>
+                                    <textarea
+                                        rows="3"
+                                        value={editablePromptText}
+                                        onChange={(e) => setEditablePromptText(e.target.value)}
+                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-banana-400"
+                                    />
+                                    <button
+                                        onClick={() => handleTestPrompt(null, editablePromptText, selectedModel, aspectRatio)}
+                                        disabled={isImageLoading}
+                                        className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-banana-400 border border-banana-500/30 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Icon name="refresh-cw" className={`w-3.5 h-3.5 ${isImageLoading ? 'animate-spin' : ''}`} />
+                                        Render Ulang dengan Prompt Terubah
+                                    </button>
+                                </div>
+
+                                {/* Dynamic Image Canvas Preview */}
+                                <div className={`relative w-full bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center overflow-hidden transition-all min-h-[280px] ${
+                                    aspectRatio === '16:9' ? 'aspect-video' : aspectRatio === '9:16' ? 'aspect-[9/16] max-h-[420px] mx-auto' : 'aspect-square max-h-[350px] mx-auto'
+                                }`}>
+                                    {isImageLoading ? (
+                                        <div className="text-center space-y-3 p-6 max-w-sm">
+                                            <div className="w-10 h-10 border-4 border-banana-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                            <p className="text-xs text-slate-300 font-medium animate-pulse">{loadingMessage}</p>
+                                        </div>
+                                    ) : imageError ? (
+                                        <div className="text-center space-y-3 p-6 max-w-md">
+                                            <Icon name="alert-triangle" className="w-8 h-8 text-rose-400 mx-auto" />
+                                            <p className="text-xs text-rose-300">{imageError}</p>
+                                            <button
+                                                onClick={() => handleTestPrompt(null, editablePromptText, selectedModel, aspectRatio)}
+                                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-white rounded-xl font-medium"
+                                            >
+                                                Coba Ulang
+                                            </button>
+                                        </div>
+                                    ) : previewImage ? (
+                                        <div className="relative w-full h-full group">
+                                            <img
+                                                src={previewImage}
+                                                alt={previewModalPrompt.title}
+                                                className="w-full h-full object-contain bg-black/40"
+                                            />
+                                        </div>
+                                    ) : null}
+                                </div>
+
+                                {/* Multi-Turn Editing (Gemini 3.1 Only) */}
+                                {selectedModel === 'gemini-3.1-flash-image-preview' && previewImage && !isImageLoading && (
+                                    <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-2">
+                                        <label className="block text-[11px] font-semibold text-banana-400 flex items-center gap-1.5">
+                                            <Icon name="message-square" className="w-3.5 h-3.5" />
+                                            Edit Latar / Elemen Tambahan (Multi-Turn Nano Banana):
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={followUpInput}
+                                                onChange={(e) => setFollowUpInput(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && handleFollowUpEdit()}
+                                                placeholder="Misal: 'Tambahkan kacamata hitam' atau 'Ubah latar jadi pantai malam'..."
+                                                className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-banana-400"
+                                            />
+                                            <button
+                                                onClick={handleFollowUpEdit}
+                                                className="px-4 py-2 bg-banana-500 hover:bg-banana-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1 shrink-0"
+                                            >
+                                                <Icon name="send" className="w-3.5 h-3.5" />
+                                                Edit
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
