@@ -387,6 +387,18 @@
                 iconClass: "fa-solid fa-camera-retro text-indigo-500"
             },
             {
+                id: 105,
+                name: "Prompt Generator Foto",
+                category: "Design",
+                desc: "Generator prompt foto & instruksi visual otomatis berbasis AI untuk menghasilkan karya seni gambar yang presisi, mendetail, dan estetik.",
+                link: "https://share.gemini.google/d1Yqmu5GLy5Z",
+                pricing: "Gratis",
+                rating: 4.9,
+                reviews: 265,
+                tags: ["Prompt", "Photo", "Image Gen", "Design"],
+                iconClass: "fa-solid fa-wand-magic-sparkles text-pink-500"
+            },
+            {
                 id: 102,
                 name: "Games AI",
                 category: "Productivity",
@@ -460,15 +472,15 @@
             },
             {
                 id: 4,
-                name: "v0.dev",
-                category: "Code",
-                desc: "Sistem generative UI rancangan Vercel yang mampu memproduksi kode frontend React, Tailwind, dan shadcn/ui berkualitas siap pakai dari prompt natural.",
-                link: "https://v0.dev",
+                name: "Qwen.ai",
+                category: "Design",
+                desc: "Model AI canggih dan asisten kecerdasan buatan serbaguna dari Alibaba Cloud untuk coding, pemrosesan bahasa, dan analisis mendalam.",
+                link: "https://qwen.ai",
                 pricing: "Freemium",
-                rating: 4.7,
-                reviews: 580,
-                tags: ["Frontend", "Vercel", "React", "NextJS"],
-                iconClass: "fa-solid fa-laptop-code text-emerald-500"
+                rating: 4.8,
+                reviews: 890,
+                tags: ["Alibaba", "Image Gen", "Video Gen", "Multimodal"],
+                iconClass: "fa-solid fa-wand-magic-sparkles text-indigo-500"
             },
             {
                 id: 9,
@@ -544,13 +556,15 @@
                 parsedTools = [];
             }
 
-            // Detect if database needs synchronization with updated default tools (e.g. check for Foto Editor or absence of Sora)
+            // Detect if database needs synchronization with updated default tools
             const hasFotoEditor = parsedTools.some(t => t.name === "Foto Editor");
             const hasSora = parsedTools.some(t => t.name === "Sora");
             const hasMediaArab = parsedTools.some(t => t.name === "Media Interaktif - Bahasa Arab");
-            const hasUpdatedGamesAI = parsedTools.some(t => t.name === "Games AI" && t.link === "https://gemini.google.com/share/d/1IqaqE-RqvHVr0TIxK44_z4YgpubovUUB?usp=sharing");
+            const hasPromptFoto = parsedTools.some(t => t.name === "Prompt Generator Foto");
+            const hasQwen = parsedTools.some(t => t.name === "Qwen.ai");
+            const hasV0 = parsedTools.some(t => t.name === "v0.dev");
 
-            if (!savedTools || !hasFotoEditor || hasSora || !hasMediaArab || !hasUpdatedGamesAI) {
+            if (!savedTools || !hasFotoEditor || hasSora || !hasMediaArab || !hasPromptFoto || !hasQwen || hasV0) {
                 toolsList = [...DEFAULT_TOOLS];
                 localStorage.setItem('saiyudi_tools', JSON.stringify(toolsList));
             } else {
